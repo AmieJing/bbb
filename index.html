@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="theme-color" content="#f5f7fb" />
+  <title>价格计算器 iOS版</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f7fb;
+      color: #222;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 24px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 28px;
+    }
+
+    p {
+      line-height: 1.6;
+    }
+
+    form {
+      display: grid;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      border: 1px solid #ccd3e0;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    input[readonly] {
+      background: #f0f3f8;
+      color: #333;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-group input {
+      flex: 1;
+    }
+
+    .unit {
+      min-width: 56px;
+      padding: 12px 10px;
+      text-align: center;
+      background: #eef2f8;
+      border: 1px solid #ccd3e0;
+      border-radius: 8px;
+      color: #4a5568;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .formula-box {
+      margin-top: 28px;
+      padding: 16px;
+      background: #f8fafc;
+      border: 1px solid #dde4ef;
+      border-radius: 10px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #2b6de5;
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    button.secondary {
+      background: #5b6472;
+    }
+
+    button:hover {
+      opacity: 0.92;
+    }
+
+    .summary-box {
+      margin-top: 24px;
+      padding: 16px;
+      background: #fffdf5;
+      border: 1px solid #f0df9a;
+      border-radius: 10px;
+    }
+
+    .summary-box h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .summary-content {
+      line-height: 1.8;
+      white-space: pre-line;
+    }
+
+    .formula-box h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .formula {
+      margin: 10px 0;
+      padding: 10px 12px;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #e5eaf2;
+      font-family: Consolas, monospace;
+      word-break: break-word;
+    }
+
+    .tip {
+      margin-top: 12px;
+      color: #5b6472;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        background: #fff;
+      }
+
+      .container {
+        margin: 0;
+        min-height: 100vh;
+        max-width: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: calc(18px + env(safe-area-inset-top)) 16px calc(22px + env(safe-area-inset-bottom));
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      button {
+        min-height: 44px;
+        font-size: 16px;
+      }
+
+      .unit {
+        min-width: 60px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .container {
+        box-shadow: none;
+        margin: 0;
+        max-width: none;
+      }
+
+      .actions {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>房价计算器</h1>
+    <p>iPhone 可直接在 Safari 中打开并使用。只需输入“单价（万/平）”，页面会自动计算其余字段，并展示对应算式。</p>
+
+    <form id="priceForm">
+      <div class="field">
+        <label for="unitPrice">单价</label>
+        <div class="input-group">
+          <input id="unitPrice" name="unitPrice" type="number" step="0.01" min="0" inputmode="decimal" placeholder="请输入单价" />
+          <span class="unit">万/平</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="totalPrice">总价</label>
+        <div class="input-group">
+          <input id="totalPrice" name="totalPrice" type="text" readonly />
+          <span class="unit">万元</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="totalWithTax">总价 + 中介 + 个税</label>
+        <div class="input-group">
+          <input id="totalWithTax" name="totalWithTax" type="text" readonly />
+          <span class="unit">万元</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="totalWithTaxParking">总价 + 中介 + 个税 + 车位</label>
+        <div class="input-group">
+          <input id="totalWithTaxParking" name="totalWithTaxParking" type="text" readonly />
+          <span class="unit">万元</span>
+        </div>
+      </div>
+    </form>
+
+    <div class="actions">
+      <button id="copyButton" type="button">复制结果</button>
+      <button id="printButton" class="secondary" type="button">打印</button>
+    </div>
+
+    <div class="summary-box">
+      <h2>汇总结果</h2>
+      <div id="summaryContent" class="summary-content">请输入单价后查看汇总结果。</div>
+    </div>
+
+    <div class="formula-box">
+      <h2>算式展示</h2>
+      <div id="formulaUnitPrice" class="formula">单价 = 输入值（万/平）</div>
+      <div id="formulaTotalPrice" class="formula">总价 = 单价（万/平） × 91.55 = 结果（万元）</div>
+      <div id="formulaTotalWithTax" class="formula">总价 + 中介 + 个税 = 总价（万元） + 总价 × 0.02575 = 结果（万元）</div>
+      <div id="formulaTotalWithTaxParking" class="formula">总价 + 中介 + 个税 + 车位 = 总价（万元） + 总价 × 0.02575 + 3（万元） = 结果（万元）</div>
+      <div class="tip">单位：单价为万/平，其余金额为万元；结果保留 2 位小数。</div>
+      <div class="tip">备注：个税 1 个点；中介 1.75 * 0.9 个点，即 1.575 个点。合计为 2.575 个点，对应公式中的 0.02575。</div>
+    </div>
+  </div>
+
+  <script>
+    const unitPriceInput = document.getElementById("unitPrice");
+    const totalPriceInput = document.getElementById("totalPrice");
+    const totalWithTaxInput = document.getElementById("totalWithTax");
+    const totalWithTaxParkingInput = document.getElementById("totalWithTaxParking");
+    const copyButton = document.getElementById("copyButton");
+    const printButton = document.getElementById("printButton");
+    const summaryContent = document.getElementById("summaryContent");
+
+    const formulaUnitPrice = document.getElementById("formulaUnitPrice");
+    const formulaTotalPrice = document.getElementById("formulaTotalPrice");
+    const formulaTotalWithTax = document.getElementById("formulaTotalWithTax");
+    const formulaTotalWithTaxParking = document.getElementById("formulaTotalWithTaxParking");
+
+    function formatNumber(value) {
+      return Number(value).toFixed(2);
+    }
+
+    function buildSummary(unitPrice, totalPrice, totalWithTax, totalWithTaxParking) {
+      return [
+        "单价：" + formatNumber(unitPrice) + " 万/平",
+        "总价：" + formatNumber(totalPrice) + " 万元",
+        "总价 + 中介 + 个税：" + formatNumber(totalWithTax) + " 万元",
+        "总价 + 中介 + 个税 + 车位：" + formatNumber(totalWithTaxParking) + " 万元"
+      ].join("\n");
+    }
+
+    function clearOutputs() {
+      totalPriceInput.value = "";
+      totalWithTaxInput.value = "";
+      totalWithTaxParkingInput.value = "";
+      summaryContent.textContent = "请输入单价后查看汇总结果。";
+
+      formulaUnitPrice.textContent = "单价 = 输入值（万/平）";
+      formulaTotalPrice.textContent = "总价 = 单价（万/平） × 91.55 = 结果（万元）";
+      formulaTotalWithTax.textContent = "总价 + 中介 + 个税 = 总价（万元） + 总价 × 0.02575 = 结果（万元）";
+      formulaTotalWithTaxParking.textContent = "总价 + 中介 + 个税 + 车位 = 总价（万元） + 总价 × 0.02575 + 3（万元） = 结果（万元）";
+    }
+
+    function calculatePrices() {
+      const unitPrice = parseFloat(unitPriceInput.value);
+
+      if (Number.isNaN(unitPrice) || unitPrice < 0) {
+        clearOutputs();
+        return;
+      }
+
+      const totalPrice = unitPrice * 91.55;
+      const totalWithTax = totalPrice + totalPrice * 0.02575;
+      const totalWithTaxParking = totalWithTax + 3;
+
+      totalPriceInput.value = formatNumber(totalPrice);
+      totalWithTaxInput.value = formatNumber(totalWithTax);
+      totalWithTaxParkingInput.value = formatNumber(totalWithTaxParking);
+      summaryContent.textContent = buildSummary(unitPrice, totalPrice, totalWithTax, totalWithTaxParking);
+
+      formulaUnitPrice.textContent = "单价 = " + formatNumber(unitPrice) + " 万/平";
+      formulaTotalPrice.textContent = "总价 = " + formatNumber(unitPrice) + " 万/平 × 91.55 = " + formatNumber(totalPrice) + " 万元";
+      formulaTotalWithTax.textContent =
+        "总价 + 中介 + 个税 = " +
+        formatNumber(totalPrice) +
+        " 万元 + " +
+        formatNumber(totalPrice) +
+        " 万元 × 0.02575 = " +
+        formatNumber(totalWithTax) +
+        " 万元";
+      formulaTotalWithTaxParking.textContent =
+        "总价 + 中介 + 个税 + 车位 = " +
+        formatNumber(totalPrice) +
+        " 万元 + " +
+        formatNumber(totalPrice) +
+        " 万元 × 0.02575 + 3 万元 = " +
+        formatNumber(totalWithTaxParking) +
+        " 万元";
+    }
+
+    async function copySummary() {
+      const summaryText = summaryContent.textContent;
+
+      if (!unitPriceInput.value || summaryText === "请输入单价后查看汇总结果。") {
+        window.alert("请先输入单价并生成结果。");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(summaryText);
+        window.alert("结果已复制。");
+      } catch (error) {
+        window.alert("复制失败，请手动复制。");
+      }
+    }
+
+    unitPriceInput.addEventListener("input", calculatePrices);
+    copyButton.addEventListener("click", copySummary);
+    printButton.addEventListener("click", function () {
+      window.print();
+    });
+    clearOutputs();
+  </script>
+</body>
+</html>
